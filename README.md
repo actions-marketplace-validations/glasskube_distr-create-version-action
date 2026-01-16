@@ -1,7 +1,7 @@
 # distr-create-version-action
 
 This action creates a new version of a
-[Distr](https://github.com/glasskube/distr) application.
+[Distr](https://github.com/distr-sh/distr) application.
 
 Hook it into your CI/CD pipeline to automatically create a new version of your
 application in Distr, every time you push a new release. It supports both Docker
@@ -12,7 +12,7 @@ and Helm applications.
 See [action.yml](action.yml).
 
 ```yaml
-- uses: glasskube/distr-create-version-action@v1
+- uses: distr-sh/distr-create-version-action@v1
   with:
     # Path to the Distr API, must end with /api/v1
     # Defaults to https://app.distr.sh/api/v1 – if you are selfhosting set to, e.g. https://distr.example.com/api/v1
@@ -60,6 +60,17 @@ See [action.yml](action.yml).
     # Example usage: ${{ github.workspace }}/template
     # Optional
     template-file: ''
+
+    # Link template for accessing deployed applications. Use template variables like {{ .Env.VARIABLE_NAME }}
+    # to dynamically generate links based on deployment environment variables.
+    # Example: http://{{ .Env.HELLO_DISTR_HOST }}
+    # Optional
+    link-template: ''
+
+    # If set to true, all deployments of the application will be updated to the newly created version.
+    # This will update all deployment targets where this application is deployed.
+    # Optional, defaults to false
+    update-deployments: false
 ```
 
 **Docker Example**
@@ -71,13 +82,15 @@ See [action.yml](action.yml).
 
 - name: Create Distr Version
   id: distr-create-version
-  uses: glasskube/distr-create-version-action@v1
+  uses: distr-sh/distr-create-version-action@v1
   with:
     api-token: ${{ secrets.DISTR_API_TOKEN }}
     application-id: '7fa566b3-a20e-4b09-814c-5193c1469f7c'
     version-name: 'v1.0.0'
     compose-file: ${{ github.workspace }}/docker-compose-prod.yml
     template-file: ${{ github.workspace }}/template.env
+    link-template: 'http://{{ .Env.APP_HOST }}'
+    update-deployments: true
 
 - name: Print Application Version ID
   id: output
@@ -93,7 +106,7 @@ See [action.yml](action.yml).
 
 - name: Create Distr Version
   id: distr-create-version
-  uses: glasskube/distr-create-version-action@v1
+  uses: distr-sh/distr-create-version-action@v1
   with:
     api-token: ${{ secrets.DISTR_API_TOKEN }}
     application-id: '7fa566b3-a20e-4b09-814c-5193c1469f7c'
@@ -103,6 +116,8 @@ See [action.yml](action.yml).
     chart-version: 'v1.0.0'
     base-values-file: ${{ github.workspace }}/base-values.yml
     template-file: ${{ github.workspace }}/template.yml
+    link-template: 'https://{{ .Env.INGRESS_HOST }}'
+    update-deployments: true
 
 - name: Print Application Version ID
   id: output
@@ -111,27 +126,16 @@ See [action.yml](action.yml).
 
 ## Development
 
-> [!NOTE]
->
-> You'll need to have a reasonably modern version of
-> [Node.js](https://nodejs.org) handy (20.x or later should work!). If you are
-> using a version manager like [`nodenv`](https://github.com/nodenv/nodenv) or
-> [`fnm`](https://github.com/Schniz/fnm), this template has a `.node-version`
-> file at the root of the repository that can be used to automatically switch to
-> the correct version when you `cd` into the repository. Additionally, this
-> `.node-version` file is used by GitHub Actions in any `actions/setup-node`
-> actions.
-
 ### Install dependencies
 
-```bash
-npm install
+```shell
+pnpm install
 ```
 
 ### Build the JS bundle
 
-```bash
-npm run all
+```shell
+pnpm run all
 ```
 
 The bundle has to be commited to the repository, as it is used by the action.
@@ -153,9 +157,8 @@ The `local-action` utility can be run in the following ways:
 
 - Terminal/Command Prompt
 
-  ```bash
-  # npx local action <action-yaml-path> <entrypoint> <dotenv-file>
-  npx local-action . src/main.ts .env
+  ```shell
+  pnpm exec local-action . src/main.ts .env
   ```
 
 You can provide a `.env` file to the `local-action` CLI to set environment
@@ -188,7 +191,7 @@ steps:
 ```
 
 For example workflow runs, check out the
-[Actions tab](https://github.com/glasskube/distr-create-version-action/actions)!
+[Actions tab](https://github.com/distr-sh/distr-create-version-action/actions)!
 
 ## Publishing a New Release
 
