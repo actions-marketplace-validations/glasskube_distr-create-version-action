@@ -1,2 +1,3 @@
 [tools]
-prettier = "latest"
+node = "24"
+pnpm = "11"
